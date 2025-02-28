@@ -5,7 +5,7 @@ from aiogram.filters import Command
 
 # ⚡ Вставь сюда свой Telegram Token (полученный от BotFather)
 TELEGRAM_TOKEN = "8124465634:AAGolfHNXTZyi11v8L0EUzXjt3uDx4Bq4ZY"
-CHAT_ID = "1642610147"  # ID чата, куда бот будет отправлять уведомления
+CHAT_ID = "-1002181671988"  # ID чата, куда бот будет отправлять уведомления
 
 # URL для получения списка опросов
 API_URL = "https://tvoyhod.online/api/survey/list?"
@@ -38,7 +38,6 @@ async def check_surveys():
     global last_survey
 
     surveys = get_surveys()
-    print(surveys)
     if surveys and "history" in surveys:
         latest_survey = surveys["history"][0]  # Берем последний опрос
 
@@ -53,6 +52,7 @@ async def check_surveys():
             await bot.send_message(chat_id=CHAT_ID, text=message)
             print("✅ Отправлено уведомление о новом опросе!")
         else:
+            await bot.send_message(chat_id=CHAT_ID, text="🔹 Новых опросов нет.")
             print("🔹 Новых опросов нет.")
     else:
         print("❌ Не удалось получить список опросов.")
