@@ -20,6 +20,7 @@ if response.status_code == 200:
                 chat_id = update["message"]["chat"]["id"]
                 text = update["message"].get("text", "Нет текста")
                 print(f"ID чата: {chat_id}, Сообщение: {text}")
+                print(response.json())
     else:
         print("Нет новых обновлений. Отправьте боту сообщение.")
 else:
