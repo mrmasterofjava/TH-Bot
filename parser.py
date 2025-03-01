@@ -67,7 +67,7 @@ async def send_welcome(message: types.Message):
 async def scheduler():
     while True:
         await check_surveys()
-        await asyncio.sleep(300)  # Пауза 5 минут
+        await asyncio.sleep(10800)  # Пауза 5 минут
 
 # Запуск бота и планировщика
 async def main():
