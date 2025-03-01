@@ -6,7 +6,7 @@ from aiogram.filters import Command
 from datetime import datetime, time
 
 
-# ⚡ Вставь сюда свой Telegram Token (полученный от BotFather)
+# Telegram Token (полученный от BotFather)
 TELEGRAM_TOKEN = "8124465634:AAGolfHNXTZyi11v8L0EUzXjt3uDx4Bq4ZY"
 CHAT_ID = "-1002181671988" # ID чата, куда бот будет отправлять уведомления
 TOPIC_ID  = "781"
