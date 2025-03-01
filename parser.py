@@ -1,7 +1,10 @@
+import pytz
 import requests
 import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
+from datetime import datetime, time
+
 
 # ⚡ Вставь сюда свой Telegram Token (полученный от BotFather)
 TELEGRAM_TOKEN = "8124465634:AAGolfHNXTZyi11v8L0EUzXjt3uDx4Bq4ZY"
@@ -62,18 +65,39 @@ async def check_surveys():
 @dp.message(Command("start"))
 async def send_welcome(message: types.Message):
     await message.reply("Привет! Я бот, который будет уведомлять тебя о новых опросах на 'Твой ход'. Ожидай уведомлений!")
+# Функция для отправки сообщения о проверке опросов
+async def send_daily_check_message():
+    message = "🕒 Ежедневная проверка опросов на 'Твой ход'. Новых опросов пока нет."
+    await bot.send_message(chat_id=CHAT_ID, message_thread_id=TOPIC_ID, text=message)
+    print("✅ Отправлено ежедневное уведомление о проверке опросов.")
+
+# Функция для запуска ежедневной проверки в 23:30 по московскому времени
+async def daily_scheduler():
+    moscow_tz = pytz.timezone("Europe/Moscow")  # Устанавливаем московское время
+    while True:
+        now = datetime.now(moscow_tz).time()  # Текущее время в Москве
+        target_time = time(23, 30)  # Время 23:30
+
+        if now.hour == target_time.hour and now.minute == target_time.minute:
+            await send_daily_check_message()
+            await asyncio.sleep(60)  # Ждём минуту, чтобы не отправить сообщение несколько раз
+        else:
+            await asyncio.sleep(30)  # Проверяем время каждые 30 секунд
 
 # Периодическая проверка опросов
-async def scheduler():
+
+# Периодическая проверка опросов
+async def periodic_scheduler():
     while True:
         await check_surveys()
-        await asyncio.sleep(10800)  # Пауза 5 минут
+        await asyncio.sleep(10800)  # Пауза 3 часа
 
-# Запуск бота и планировщика
+# Запуск бота и планировщиков
 async def main():
     await asyncio.gather(
         dp.start_polling(bot),
-        scheduler()
+        periodic_scheduler(),
+        daily_scheduler()
     )
 
 if __name__ == "__main__":
