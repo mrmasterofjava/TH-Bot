@@ -1,72 +1,104 @@
-import time
+import pytz
 import requests
+import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
-from bs4 import BeautifulSoup
-import schedule
+from datetime import datetime, time
+
 
 # ⚡ Вставь сюда свой Telegram Token (полученный от BotFather)
-TOKEN = "8124465634:AAGolfHNXTZyi11v8L0EUzXjt3uDx4Bq4ZY"
-CHAT_ID = "1642610147"
+TELEGRAM_TOKEN = "8124465634:AAGolfHNXTZyi11v8L0EUzXjt3uDx4Bq4ZY"
+CHAT_ID = "-1002181671988"  # ID чата, куда бот будет отправлять уведомления
+TOPIC_ID = 781
 
-# URL страницы "Твой ход"
-URL = "https://tvoyhod.online/lk/surveys?tab=0"
+# URL для получения списка опросов
+API_URL = "https://tvoyhod.online/api/survey/list?"
 
-# CSS-селектор для поиска опросов
-SURVEY_SELECTOR = "div.SurveysTab_surveysPaper__zjFN6 div.MuiPaper-root.p-5"
+# Заголовки запроса
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 OPR/116.0.0.0",
+    "Accept": "application/json",
+    "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpYXQiOjE3Mzg3Njc3ODYsImV4cCI6MTc0Mzk1MTc4Niwicm9sZXMiOlsiUk9MRV9QVVBJTCJdLCJlbWFpbCI6Imlza2FuZGVyLm11c3RhZmluLjA1QG1haWwucnUifQ.cbxLytUCILm1x0j3pVSKtdv9nq18-Upi2gF4gp1FDizVLmicT5ACAonhRFS0D-R1r8YHljwLdn4gVjdIRe3b2H8TuOiysL7bj1akPEHwvLMILikOtzbADQ7k-evZWEhDJu2PS_8TBMd3LWtjefqUiN-Gvd90ZTrSa9f-lTBlDYIRKnYinpoAm6Ozk-D9dV9rAUeBJscY_WSI7q0jnKIA73Fr7W2G7uF7metPvbEBnNoaS6guds5gwTnjmwUiOmYm-nosWDhQXWGA7ZQapxk0Ls3UjqO2k5UjshGdXCw7tAdZSQMjVr_OfCJhdEifBAHAYCq086t0DDuP9alND_g9B_jlMuvkBubxjIftX1cMwZyOA_17D2TwE4iJf1jL0OnbqN7ZwxvV1vYcgqpYhYl6IWgtB3D-umJcBBtO3DY9HtFicNn_3XN7D6tHDE_Gk2szw5gyDBSvlWPgrL3MbHkTPsoYgwmD4qVEreMySaYX0yYXs2Z8ernqa84hMwnhDHFYYJcDuuRtKF2fYK2q2e-NdfIorc3a4azPvuOIkfAfKbpDucE8UglWE4Ft3cnXL5gVjWKy-juWb85Il8A-HqpoAh7i2qsKsXnDXsP6UIzB__T0Xomd1FbA4z5noYoec54vLaBXPvvrCO27zwFlsi4gIB2wzTnLCCmYWhan-XASiAc"
+}
 
 # Инициализация Telegram бота
-bot = Bot(token=TOKEN)
-dp = Dispatcher()  # Инициализация Dispatcher без аргументов
+bot = Bot(token=TELEGRAM_TOKEN)
+dp = Dispatcher()
 
-# Храним последнее найденное название опроса
-last_survey_title = None
+# Храним последний опрос
+last_survey = None
+
+# Функция для получения списка опросов
+def get_surveys():
+    response = requests.get(API_URL, headers=headers)
+    if response.status_code == 200:
+        return response.json()  # Возвращаем JSON с опросами
+    else:
+        print(f"Ошибка {response.status_code}: {response.text}")
+        return None
+
+# Функция для проверки новых опросов
+async def check_surveys():
+    global last_survey
+
+    surveys = get_surveys()
+    if surveys and "items" in surveys:
+        latest_survey = surveys["items"][0]  # Берем последний опрос
+
+        if latest_survey != last_survey:
+            last_survey = latest_survey
+            message = (
+                f"🔔 Новый опрос на 'Твой ход'!\n\n"
+                f"Название: {latest_survey.get('name')}\n"
+                f"Описание: {latest_survey.get('description')}\n"
+                f"Ссылка: https://tvoyhod.online"
+            )
+            await bot.send_message(chat_id=CHAT_ID, message_thread_id = TOPIC_ID, text=message)
+            print("✅ Отправлено уведомление о новом опросе!")
+        else:
+            await bot.send_message(chat_id=CHAT_ID,message_thread_id = TOPIC_ID, text="🔹 Новых опросов нет.")
+            print("🔹 Новых опросов нет.")
+    else:
+        print("❌ Не удалось получить список опросов.")
 
 # Обработчик команды /start
 @dp.message(Command("start"))
 async def send_welcome(message: types.Message):
     await message.reply("Привет! Я бот, который будет уведомлять тебя о новых опросах на 'Твой ход'. Ожидай уведомлений!")
+# Функция для отправки сообщения о проверке опросов
+async def send_daily_check_message():
+    message = "🕒 Ежедневная проверка опросов на 'Твой ход'. Новых опросов пока нет."
+    await bot.send_message(chat_id=CHAT_ID, message_thread_id=TOPIC_ID, text=message)
+    print("✅ Отправлено ежедневное уведомление о проверке опросов.")
 
-def check_surveys():
-    global last_survey_title
-
-    try:
-        # Запрос к сайту
-        response = requests.get(URL)
-        response.raise_for_status()
-        soup = BeautifulSoup(response.text, "html.parser")
-
-        # Ищем блок с опросами
-        survey_block = soup.select_one(SURVEY_SELECTOR)
-
-        if survey_block:
-            # Получаем текст первого опроса (если есть)
-            new_survey_title = survey_block.get_text(strip=True)
-
-            # Если это новый опрос — отправляем уведомление
-            if new_survey_title != last_survey_title:
-                last_survey_title = new_survey_title
-                bot.send_message(chat_id=CHAT_ID, text=f"🔔 Новый опрос на 'Твой ход'!\n\n{new_survey_title}\n\n👉 {URL}")
-                print("✅ Отправлено уведомление о новом опросе!")
-            else:
-                bot.send_message(chat_id=CHAT_ID, text=f"Новых опросов пока нет'!")
-                print("🔹 Новых опросов нет.")
-        else:
-            bot.send_message(chat_id=CHAT_ID, text=f"Новых опросов пока нет'!")
-            print("❌ Не найден блок с опросами.")
-    except Exception as e:
-        print(f"⚠ Ошибка при проверке опросов: {e}")
-
-# Запускаем проверку каждые 5 минут
-schedule.every(5).minutes.do(check_surveys)
-
-print("🚀 Бот запущен! Ждём новые опросы...")
-
-if __name__ == '__main__':
-    # Запуск бота
-    dp.run_polling(bot, skip_updates=True)  # Используем run_polling вместо executor
-
-    # Запуск планировщика
+# Функция для запуска ежедневной проверки в 23:30 по московскому времени
+async def daily_scheduler():
+    moscow_tz = pytz.timezone("Europe/Moscow")  # Устанавливаем московское время
     while True:
-        schedule.run_pending()
-        time.sleep(60)
+        now = datetime.now(moscow_tz).time()  # Текущее время в Москве
+        target_time = time(23, 30)  # Время 23:30
+
+        if now.hour == target_time.hour and now.minute == target_time.minute:
+            await send_daily_check_message()
+            await asyncio.sleep(60)  # Ждём минуту, чтобы не отправить сообщение несколько раз
+        else:
+            await asyncio.sleep(30)  # Проверяем время каждые 30 секунд
+
+# Периодическая проверка опросов
+
+# Периодическая проверка опросов
+async def periodic_scheduler():
+    while True:
+        await check_surveys()
+        await asyncio.sleep(10800)  # Пауза 3 часа
+
+# Запуск бота и планировщиков
+async def main():
+    await asyncio.gather(
+        dp.start_polling(bot),
+        periodic_scheduler(),
+        daily_scheduler()
+    )
+
+if __name__ == "__main__":
+    asyncio.run(main())

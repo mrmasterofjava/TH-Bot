@@ -1,97 +1,23 @@
 import requests
-import urllib.parse
-import json
-
-# URL для аутентификации
-AUTH_URL = "https://tvoyhod.online/auth/signin"
 
 # URL для получения списка опросов
 API_URL = "https://tvoyhod.online/api/survey/list?"
 
+# Ваш JWT-токен
+token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpYXQiOjE3Mzg3Njc3ODYsImV4cCI6MTc0Mzk1MTc4Niwicm9sZXMiOlsiUk9MRV9QVVBJTCJdLCJlbWFpbCI6Imlza2FuZGVyLm11c3RhZmluLjA1QG1haWwucnUifQ.cbxLytUCILm1x0j3pVSKtdv9nq18-Upi2gF4gp1FDizVLmicT5ACAonhRFS0D-R1r8YHljwLdn4gVjdIRe3b2H8TuOiysL7bj1akPEHwvLMILikOtzbADQ7k-evZWEhDJu2PS_8TBMd3LWtjefqUiN-Gvd90ZTrSa9f-lTBlDYIRKnYinpoAm6Ozk-D9dV9rAUeBJscY_WSI7q0jnKIA73Fr7W2G7uF7metPvbEBnNoaS6guds5gwTnjmwUiOmYm-nosWDhQXWGA7ZQapxk0Ls3UjqO2k5UjshGdXCw7tAdZSQMjVr_OfCJhdEifBAHAYCq086t0DDuP9alND_g9B_jlMuvkBubxjIftX1cMwZyOA_17D2TwE4iJf1jL0OnbqN7ZwxvV1vYcgqpYhYl6IWgtB3D-umJcBBtO3DY9HtFicNn_3XN7D6tHDE_Gk2szw5gyDBSvlWPgrL3MbHkTPsoYgwmD4qVEreMySaYX0yYXs2Z8ernqa84hMwnhDHFYYJcDuuRtKF2fYK2q2e-NdfIorc3a4azPvuOIkfAfKbpDucE8UglWE4Ft3cnXL5gVjWKy-juWb85Il8A-HqpoAh7i2qsKsXnDXsP6UIzB__T0Xomd1FbA4z5noYoec54vLaBXPvvrCO27zwFlsi4gIB2wzTnLCCmYWhan-XASiAc"
+
 # Заголовки запроса
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 OPR/116.0.0.0",
-    "Accept": "application/json"
+    "Accept": "application/json",
+    "Authorization": f"Bearer {token}"  # Добавляем токен
 }
 
-# Данные для аутентификации
-auth_data = {
-    "email": "iskander.mustafin.05@mail.ru",  # Замените на ваш email
-    "password": "TheFlash01"         # Замените на ваш пароль
-}
+# Выполняем запрос к API
+response = requests.get(API_URL, headers=headers)
 
-
-def authenticate(auth_url, auth_data, headers):
-    """
-    Выполняет аутентификацию и возвращает токен (если успешно) или None.
-    """
-    try:
-        # Попробуйте GET запрос с параметрами
-        auth_response = requests.get(auth_url, params=auth_data, headers=headers)
-
-        print(f"Аутентификация - Статус код: {auth_response.status_code}")
-        print(f"Аутентификация - Content-Type: {auth_response.headers.get('Content-Type')}")
-        print(f"Аутентификация - Содержимое ответа: {auth_response.text}")
-
-        if auth_response.status_code == 200:
-            try:
-                # Попробуйте распарсить JSON
-                json_data = auth_response.json()
-                token = json_data.get("token")
-
-                if token:
-                    print(f"Аутентификация - Токен получен: {token}")
-                    return token
-                else:
-                    print("Аутентификация - Токен не найден в JSON.")
-                    return None
-
-            except json.JSONDecodeError as e:
-                print(f"Аутентификация - Ошибка JSON: {e}")
-                return None
-
-        else:
-            print(f"Аутентификация - Ошибка: {auth_response.text}")
-            return None
-
-    except requests.exceptions.RequestException as e:
-        print(f"Аутентификация - Ошибка подключения: {e}")
-        return None
-
-
-def get_survey_list(api_url, headers):
-    """
-    Получает список опросов, используя переданный токен в заголовках.
-    """
-    try:
-        response = requests.get(api_url, headers=headers)
-
-        print(f"Список опросов - Статус код: {response.status_code}")
-        print(f"Список опросов - Content-Type: {response.headers.get('Content-Type')}")
-        print(f"Список опросов - Содержимое ответа: {response.text}")
-
-        if response.status_code == 200:
-            try:
-                survey_list = response.json()
-                print("Список опросов - JSON получен:")
-                print(survey_list)
-                return survey_list
-            except json.JSONDecodeError as e:
-                print(f"Список опросов - Ошибка JSON: {e}")
-                return None
-        else:
-            print(f"Список опросов - Ошибка: {response.text}")
-            return None
-
-    except requests.exceptions.RequestException as e:
-        print(f"Список опросов - Ошибка подключения: {e}")
-        return None
-
-# --- Основной код ---
-token = authenticate(AUTH_URL, auth_data, headers)
-
-if token:
-    headers["Authorization"] = f"Bearer {token}"
-    get_survey_list(API_URL, headers)
+# Проверяем ответ
+if response.status_code == 200:
+    print(response.json())  # Вывод JSON
 else:
-    print("Не удалось получить токен.  Завершение работы.")
+    print(f"Ошибка {response.status_code}: {response.text}")
