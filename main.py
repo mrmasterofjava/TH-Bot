@@ -42,15 +42,15 @@ async def check_surveys():
     global last_survey
 
     surveys = get_surveys()
-    if surveys and "items" in surveys:
-        latest_survey = surveys["items"][0]  # Берем последний опрос
+    if surveys and "history" in surveys:
+        latest_survey = surveys["history"][0]  # Берем последний опрос
 
         if latest_survey != last_survey:
             last_survey = latest_survey
             message = (
                 f"🔔 Новый опрос на 'Твой ход'!\n\n"
                 f"Название: {latest_survey.get('name')}\n"
-                f"Описание: {latest_survey.get('descriptions')}\n"
+                # f"Описание: {latest_survey.get('descriptions')}\n"
                 f"Ссылка: https://tvoyhod.online"
             )
             await bot.send_message(chat_id=CHAT_ID, message_thread_id = TOPIC_ID, text=message)
