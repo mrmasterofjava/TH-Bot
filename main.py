@@ -8,8 +8,9 @@ from datetime import datetime, time
 
 # ⚡ Вставь сюда свой Telegram Token (полученный от BotFather)
 TELEGRAM_TOKEN = "8124465634:AAGolfHNXTZyi11v8L0EUzXjt3uDx4Bq4ZY"
-CHAT_ID = "-1002181671988"  # ID чата, куда бот будет отправлять уведомления
-TOPIC_ID = 781
+# CHAT_ID = "-1002181671988"  # ID чата, куда бот будет отправлять уведомления
+# TOPIC_ID = 781
+CHAT_ID = 1642610147
 
 # URL для получения списка опросов
 API_URL = "https://tvoyhod.online/api/survey/list?"
@@ -32,7 +33,7 @@ last_survey = None
 def get_surveys():
     response = requests.get(API_URL, headers=headers)
     if response.status_code == 200:
-        return response.json()  # Возвращаем JSON с опросами
+        return response.json() # Возвращаем JSON с опросами ('items')
     else:
         print(f"Ошибка {response.status_code}: {response.text}")
         return None
@@ -41,35 +42,31 @@ def get_surveys():
 async def check_surveys():
     global last_survey
 
-    surveys = get_surveys()
-    if surveys and "items" in surveys:
-        latest_survey = surveys["items"][0]  # Берем последний опрос
-
-        if latest_survey != last_survey:
-            last_survey = latest_survey
-            message = (
-                f"🔔 Новый опрос на 'Твой ход'!\n\n"
-                f"Название: {latest_survey.get('name')}\n"
-                f"Описание: {latest_survey.get('description')}\n"
-                f"Ссылка: https://tvoyhod.online"
-            )
-            await bot.send_message(chat_id=CHAT_ID, message_thread_id = TOPIC_ID, text=message)
-            print("✅ Отправлено уведомление о новом опросе!")
-        else:
-            await bot.send_message(chat_id=CHAT_ID,message_thread_id = TOPIC_ID, text="🔹 Новых опросов нет.")
-            print("🔹 Новых опросов нет.")
+    surveys = get_surveys()['items'][0]
+    if surveys:
+        message = (
+            f"🔔 Новый опрос на 'Твой ход'!\n\n"
+            f"Название: {surveys.get('name')}\n"
+            f"Описание: {surveys.get('description')}\n"
+            f"Ссылка: https://tvoyhod.online"
+        )
+        await bot.send_message(chat_id=CHAT_ID, text=message)
+        print("✅ Отправлено уведомление о новом опросе!")
     else:
-        print("❌ Не удалось получить список опросов.")
+        await bot.send_message(chat_id=CHAT_ID, text="🔹 Новых опросов нет.")
+        print("🔹 Новых опросов нет.")
+    # else:
+    #     print("❌ Не удалось получить список опросов.")
 
 # Обработчик команды /start
 @dp.message(Command("start"))
 async def send_welcome(message: types.Message):
     await message.reply("Привет! Я бот, который будет уведомлять тебя о новых опросах на 'Твой ход'. Ожидай уведомлений!")
 # Функция для отправки сообщения о проверке опросов
-async def send_daily_check_message():
-    message = "🕒 Ежедневная проверка опросов на 'Твой ход'. Новых опросов пока нет."
-    await bot.send_message(chat_id=CHAT_ID, message_thread_id=TOPIC_ID, text=message)
-    print("✅ Отправлено ежедневное уведомление о проверке опросов.")
+# async def send_daily_check_message():
+#     message = "🕒 Ежедневная проверка опросов на 'Твой ход'. Новых опросов пока нет."
+#     await bot.send_message(chat_id=CHAT_ID, message_thread_id=TOPIC_ID, text=message)
+#     print("✅ Отправлено ежедневное уведомление о проверке опросов.")
 
 # Функция для запуска ежедневной проверки в 23:30 по московскому времени
 async def daily_scheduler():
@@ -77,14 +74,15 @@ async def daily_scheduler():
     while True:
         now = datetime.now(moscow_tz).time()  # Текущее время в Москве
         target_time = time(23, 30)  # Время 23:30
+        # message = "🕒 Ежедневная проверка опросов на 'Твой ход'"
+        # await bot.send_message(chat_id=CHAT_ID, message_thread_id=TOPIC_ID, text=message)
 
         if now.hour == target_time.hour and now.minute == target_time.minute:
-            await send_daily_check_message()
+            await check_surveys()
             await asyncio.sleep(60)  # Ждём минуту, чтобы не отправить сообщение несколько раз
         else:
             await asyncio.sleep(30)  # Проверяем время каждые 30 секунд
 
-# Периодическая проверка опросов
 
 # Периодическая проверка опросов
 async def periodic_scheduler():

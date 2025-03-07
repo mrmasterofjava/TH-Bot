@@ -17,7 +17,8 @@ headers = {
 response = requests.get(API_URL, headers=headers)
 
 # Проверяем ответ
+survey = response.json()['items'][0]
 if response.status_code == 200:
-    print(response.json())  # Вывод JSON
+    print(survey)  # Вывод JSON
 else:
     print(f"Ошибка {response.status_code}: {response.text}")
