@@ -66,10 +66,11 @@ async def daily_scheduler():
     while True:
         now = datetime.now(moscow_tz).time()  # Текущее время в Москве
         target_time = time(23, 30)  # Время 23:30
-        message = "🕒 Ежедневная проверка опросов на 'Твой ход'"
-        await bot.send_message(chat_id=CHAT_ID, message_thread_id=TOPIC_ID, text=message)
+        
 
         if now.hour == target_time.hour and now.minute == target_time.minute:
+            message = "🕒 Ежедневная проверка опросов на 'Твой ход'"
+            await bot.send_message(chat_id=CHAT_ID, message_thread_id=TOPIC_ID, text=message)
             await check_surveys()
             await asyncio.sleep(60)  # Ждём минуту, чтобы не отправить сообщение несколько раз
         else:
