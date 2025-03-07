@@ -6,7 +6,7 @@ from aiogram.filters import Command
 from datetime import datetime, time
 
 
-# ⚡ Вставь сюда свой Telegram Token (полученный от BotFather)
+# Telegram Token (полученный от BotFather)
 TELEGRAM_TOKEN = "8124465634:AAGolfHNXTZyi11v8L0EUzXjt3uDx4Bq4ZY"
 CHAT_ID = "-1002181671988"  # ID чата, куда бот будет отправлять уведомления
 TOPIC_ID = 781
@@ -39,12 +39,12 @@ def get_surveys():
 
 # Функция для проверки новых опросов
 async def check_surveys():
-    surveys = get_surveys()['items'][0]
+    surveys = get_surveys()['items']
     if surveys:
         message = (
             f"🔔 Новый опрос на 'Твой ход'!\n\n"
-            f"Название: {surveys.get('name')}\n"
-            f"Описание: {surveys.get('description')}\n"
+            f"Название: {surveys[0].get('name')}\n"
+            f"Описание: {surveys[0].get('description')}\n"
             f"Ссылка: https://tvoyhod.online"
         )
         await bot.send_message(chat_id=CHAT_ID,message_thread_id=TOPIC_ID, text=message)
