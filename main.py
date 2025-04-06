@@ -7,7 +7,7 @@ from datetime import datetime, time
 
 
 # Telegram Token (полученный от BotFather)
-TELEGRAM_TOKEN = "8124465634:AAGolfHNXTZyi11v8L0EUzXjt3uDx4Bq4ZY"
+TELEGRAM_TOKEN = "8124465634:AAEeUqb8_ArkwysviD4ZIuCfjsCKN8FZPrk"
 CHAT_ID = "-1002181671988"  # ID чата, куда бот будет отправлять уведомления
 TOPIC_ID = 781
 
