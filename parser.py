@@ -17,8 +17,17 @@ headers = {
 response = requests.get(API_URL, headers=headers)
 
 # Проверяем ответ
-survey = response.json()['items'][0]
+surveys = response.json()['items']
 if response.status_code == 200:
-    print(survey)  # Вывод JSON
+    if surveys:
+        message = (
+            f"🔔 Новый опрос на 'Твой ход'!\n\n"
+            f"Название: {surveys[0].get('name')}\n"
+            f"Описание: {surveys[0].get('description')}\n"
+            f"Ссылка: https://tvoyhod.online"
+        )
+        print("✅ Отправлено уведомление о новом опросе!")
+    else:
+        print("🔹 Новых опросов нет.")
 else:
     print(f"Ошибка {response.status_code}: {response.text}")
