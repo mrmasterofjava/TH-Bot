@@ -54,10 +54,10 @@ async def check_surveys():
             f"Описание: {surveys[0].get('description')}\n"
             f"Ссылка: https://tvoyhod.online"
         )
-        await bot.send_message(chat_id=CHAT_ID, text=message)
+        await bot.send_message(chat_id=CHAT_ID, message_thread_id=TOPIC_ID, text=message)
         print("✅ Отправлено уведомление о новом опросе!")
     else:
-        await bot.send_message(chat_id=CHAT_ID, text="🔹 Новых опросов нет.")
+        await bot.send_message(chat_id=CHAT_ID, message_thread_id=TOPIC_ID, text="🔹 Новых опросов нет.")
         print("🔹 Новых опросов нет.")
 
 
@@ -77,7 +77,7 @@ async def daily_scheduler():
 
         if now.hour == target_time.hour and now.minute == target_time.minute:
             message = "🕒 Ежедневная проверка опросов на 'Твой ход'"
-            await bot.send_message(chat_id=CHAT_ID, text=message)
+            await bot.send_message(chat_id=CHAT_ID, message_thread_id=TOPIC_ID, text=message)
             await check_surveys()
             await asyncio.sleep(60)  # Ждём минуту, чтобы не отправить сообщение несколько раз
         else:
